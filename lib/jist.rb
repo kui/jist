@@ -162,7 +162,7 @@ module Jist
       File.open(auth_token_file, 'w') do |f|
         f.write JSON.parse(response.body)['token']
       end
-      puts "Success! https://#{ENV["GITHUB_HOST"] || "github.com"}/settings/applications"
+      puts "Success! #{api_protocol}://#{ENV["GITHUB_HOST"] || "github.com"}/settings/applications"
     else
       raise "Got #{response.class} from gist: #{response.body}"
     end
@@ -201,7 +201,7 @@ module Jist
       http.request request
     end
   rescue Timeout::Error
-    raise "Could not connect to https://api.github.com/"
+    raise "Could not connect to #{api_url}"
   end
 
   # Called after an HTTP response to gist to perform post-processing.
@@ -318,7 +318,16 @@ Could not find copy command, tried:
 
   # Get the API URL
   def api_url
-    ENV.key?("GITHUB_HOST") ? URI("https://#{ENV["GITHUB_HOST"]}/") : GITHUB_API_URL
+    ENV.key?("GITHUB_HOST") ? URI("#{api_protocol}://#{ENV["GITHUB_HOST"]}/") : GITHUB_API_URL
+  end
+
+  # Get the API protocol
+  def api_protocol
+    if ENV.key?("GITHUB_HOST")
+      ENV["GITHUB_PROTOCOL"] || "https"
+    else
+      "https"
+    end
   end
 
   def auth_token_file
